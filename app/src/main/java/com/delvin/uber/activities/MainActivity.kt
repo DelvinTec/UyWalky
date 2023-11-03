@@ -3,14 +3,17 @@ package com.delvin.uber.activities
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import com.delvin.uber.databinding.ActivityMainBinding
+import com.delvin.uber.providers.AuthProvider
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var biding:ActivityMainBinding
+    val authProvider = AuthProvider()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,9 +32,23 @@ class MainActivity : AppCompatActivity() {
         val password = biding.textFieldPassword.text.toString()
 
         if (isValidFor(email,password)){
-            Toast.makeText(this, "Formulario valido", Toast.LENGTH_SHORT).show()
+            authProvider.login(email,password).addOnCompleteListener {
+                if (it.isSuccessful){
+                    goToMap()
+                }
+                else {
+                    Toast.makeText(this@MainActivity, "Error iniciando sesión", Toast.LENGTH_SHORT).show()
+                    Log.d("FIREBASE", "Error: ${it.exception.toString()}")
+                }
+            }
         }
 
+    }
+
+    private fun goToMap(){
+        val i = Intent(this, MapActivity::class.java)
+        i.flags=Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(i)
     }
 
     private fun isValidFor(email: String, password:String): Boolean{
@@ -50,5 +67,12 @@ class MainActivity : AppCompatActivity() {
     private fun goToRegister(){
         val i = Intent(this, RegisterActivity::class.java)
         startActivity(i)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (authProvider.existSession()){
+            goToMap()
+        }
     }
 }

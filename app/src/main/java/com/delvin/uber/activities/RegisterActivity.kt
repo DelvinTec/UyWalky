@@ -30,26 +30,28 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun register(){
-        var name=binding.textFieldName.text.toString()
-        var lastname=binding.textFieldLastname.text.toString()
-        var email=binding.textFieldEmail.text.toString()
-        var phone=binding.textFieldPhone.text.toString()
+        val name=binding.textFieldName.text.toString()
+        val lastname=binding.textFieldLastname.text.toString()
+        val email=binding.textFieldEmail.text.toString()
+        val phone=binding.textFieldPhone.text.toString()
         val password=binding.textFieldPassword.text.toString()
         val confirmpassword=binding.textFieldConfirmPassword.text.toString()
 
         if (isValidForm(name,lastname, email, phone, password, confirmpassword)){
             authProvider.register(email,password).addOnCompleteListener {
                 if (it.isSuccessful){
-                    val client = Client{
-                        id = authProvider.getId();
-                        name=name;
-                        lastname=lastname;
-                        phone=phone;
-                        email=email
-                    }
-                    clientProvider.create(client).addOnCompleteListener { 
+                    val client = Client(
+                        id = authProvider.getId(),
+                        name = name,
+                        lastname = lastname,
+                        phone = phone,
+                        email = email
+                    )
+
+                    clientProvider.create(client).addOnCompleteListener {
                         if (it.isSuccessful){
                             Toast.makeText(this@RegisterActivity, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                            goToMap()
                         }
                         else{
                             Toast.makeText(this@RegisterActivity, "Hubo un error almacenando los datos del usuario ${it.exception.toString()}", Toast.LENGTH_SHORT).show()
@@ -64,6 +66,12 @@ class RegisterActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    private fun goToMap(){
+        val i = Intent(this, MapActivity::class.java)
+        i.flags=Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(i)
     }
     private fun isValidForm(
         name: String,
